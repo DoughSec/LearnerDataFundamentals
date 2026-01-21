@@ -5,17 +5,6 @@ const CourseInfo = {
     name: "Introduction to JavaScript"
 };
 
-//instantialize an AssignmentInfo object
-// let assignmentInfo = {
-//     id: number,
-//     name: string,
-//     // the due date for the assignment
-//     due_at: Date,
-//     // the maximum points possible for the assignment
-//     points_possible: number
-// };
-
-
 //instantialize an AssignmentGroup object
 const AssignmentGroup = {
     id: 12345,
@@ -127,7 +116,8 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
 
     //check if points_possible is 0
     //iterate through each assignment in the AssignmentGroup to make sure points_possible is valid
-    AssignmentGroup.assignments.forEach(assignment => {
+    for (let i = 0; i < AssignmentGroup.assignments.length; i++) {
+        const assignment = AssignmentGroup.assignments[i];
         //call our method for this and pass in points_possible
         //utilize a try catch block to handle potential errors
         try {
@@ -135,8 +125,9 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
             checkIfPointsPossibleIsZero(assignment.points_possible);
         } catch (error) {
             console.error(error.message);
+            break; // Stop checking further assignments if an error occurs
         }
-    });
+    }
 
     //iterate through each learner submission
     LearnerSubmissions.forEach(learnerSubmission => {
@@ -155,10 +146,12 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
         let assignment = AssignmentGroup.assignments.find(a => a.id === learnerSubmission.assignment_id);
         //check if the assignment is found and if it is past due
         if (assignment) {
+            //convert due_at and submitted_at to Date objects for comparison
             let dueDate = new Date(assignment.due_at);
             let submittedDate = new Date(learnerSubmission.submission.submitted_at);
-            //only process if the assignment is due
+            //only process if the assignment is due, new Date() gets the current date
             if (dueDate <= new Date()) {
+                // get the score from the learner submission
                 let score = learnerSubmission.submission.score;
                 //check if the submission is late
                 if (submittedDate > dueDate) {
@@ -175,6 +168,18 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
             }
         }
     });
+
+    //calculate weighted average and format results, this should account for due 
+    //assignments only as we already filtered them out
+    for (let i = 0; i < results.length; i++) {
+        //instantialize learner variable for easier access
+        const learner = results[i];
+        //calculate avg by dividing totalScore by totalPossible
+        learner.avg = learner.totalScore / learner.totalPossible;
+        //remove totalScore and totalPossible from the final output
+        delete learner.totalScore;
+        delete learner.totalPossible;
+    }
 
     //return the results array
     return results;
@@ -193,8 +198,10 @@ function checkIfPointsPossibleIsZero(pointsPossible) {
     //check if points_possible is 0
     if (pointsPossible === 0) {
         throw new Error("Error! points_possible cannot be zero.");
+    } else {
+        return true;//not sure if we need this
     }
-    return true;//not sure if we need this
+
 }
 
 //what other checks could we do to prevent the code from breaking?
@@ -202,8 +209,10 @@ function checkIfPointsPossibleIsZero(pointsPossible) {
 function checkIfNumber(value) {
     if (typeof value !== 'number') {
         throw new Error("Error! Expected a number but received a different type.");
+    } else {
+        return true;//not sure if we need this
     }
-    return true;//not sure if we need this
+
 }
 
 //call our main function and log the results to the console

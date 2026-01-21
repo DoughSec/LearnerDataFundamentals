@@ -1,0 +1,12 @@
+{
+    "name": "javascript-fundamentals",
+    "version": "1.0.0",
+    "description": "JavaScript Fundamentals Assignment",
+    "main": "js/fundamentals.js",
+    "scripts": {
+        "start": "node js/fundamentals.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}
