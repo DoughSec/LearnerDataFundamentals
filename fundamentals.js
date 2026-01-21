@@ -89,6 +89,24 @@ const LearnerSubmissions = [
 ];
 
 /*
+    Your goal is to analyze and transform this data such that the output of 
+    your program is an array of objects, each containing the following 
+    information in the following format:
+    {
+        // the ID of the learner for which this data has been collected
+        "id": number,
+        // the learner’s total, weighted average, in which assignments
+        // with more points_possible should be counted for more
+        // e.g. a learner with 50/100 on one assignment and 190/200 on another
+        // would have a weighted average score of 240/300 = 80%.
+        "avg": number,
+        // each assignment should have a key with its ID,
+        // and the value associated with it should be the percentage that
+        // the learner scored on the assignment (submission.score / points_possible)
+        <assignment_id>: number,
+        // if an assignment is not yet due, it should not be included in either
+        // the average or the keyed dictionary of scores
+    }
     If an AssignmentGroup does not belong to its course (mismatching course_id), 
     your program should throw an error, letting the user know that the input was invalid. 
     Similar data validation should occur elsewhere within the program.
@@ -108,14 +126,53 @@ function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
     verifyCourseId(CourseInfo.id, AssignmentGroup.course_id);
 
     //check if points_possible is 0
-    //iterate through each assignment in the AssignmentGroup
+    //iterate through each assignment in the AssignmentGroup to make sure points_possible is valid
     AssignmentGroup.assignments.forEach(assignment => {
         //call our method for this and pass in points_possible
         //utilize a try catch block to handle potential errors
         try {
+            checkIfNumber(assignment.points_possible);
             checkIfPointsPossibleIsZero(assignment.points_possible);
         } catch (error) {
             console.error(error.message);
+        }
+    });
+
+    //iterate through each learner submission
+    LearnerSubmissions.forEach(learnerSubmission => {
+        //find if the learner already exists in the results array
+        let learnerResult = results.find(result => result.id === learnerSubmission.learner_id);
+        //if the learner does not exist, create a new object for them
+        if (!learnerResult) {
+            learnerResult = {
+                id: learnerSubmission.learner_id,
+                totalScore: 0,
+                totalPossible: 0
+            };
+            results.push(learnerResult);
+        }
+        //find the corresponding assignment for the learner submission
+        let assignment = AssignmentGroup.assignments.find(a => a.id === learnerSubmission.assignment_id);
+        //check if the assignment is found and if it is past due
+        if (assignment) {
+            let dueDate = new Date(assignment.due_at);
+            let submittedDate = new Date(learnerSubmission.submission.submitted_at);
+            //only process if the assignment is due
+            if (dueDate <= new Date()) {
+                let score = learnerSubmission.submission.score;
+                //check if the submission is late
+                if (submittedDate > dueDate) {
+                    //deduct 10 percent of the total points possible from their score
+                    score -= assignment.points_possible * 0.1;
+                }
+                //calculate the percentage score for the assignment
+                let percentageScore = score / assignment.points_possible;
+                //add the assignment score to the learner's result object
+                learnerResult[assignment.id] = percentageScore;
+                //update total score and total possible for weighted average calculation
+                learnerResult.totalScore += score;
+                learnerResult.totalPossible += assignment.points_possible;
+            }
         }
     });
 
@@ -139,3 +196,15 @@ function checkIfPointsPossibleIsZero(pointsPossible) {
     }
     return true;//not sure if we need this
 }
+
+//what other checks could we do to prevent the code from breaking?
+//e.g., check if a value that you are expecting to be a number is instead a string
+function checkIfNumber(value) {
+    if (typeof value !== 'number') {
+        throw new Error("Error! Expected a number but received a different type.");
+    }
+    return true;//not sure if we need this
+}
+
+//call our main function and log the results to the console
+console.log(getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions));
