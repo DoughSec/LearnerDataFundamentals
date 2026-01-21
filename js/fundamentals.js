@@ -196,12 +196,12 @@ function verifyCourseId(CourseInfoId, AssignmentGroupId) {
 
 function checkIfPointsPossibleIsZero(pointsPossible) {
     //check if points_possible is 0
-    if (pointsPossible === 0) {
-        throw new Error("Error! points_possible cannot be zero.");
-    } else {
-        return true;//not sure if we need this
+    switch (pointsPossible) {
+        case 0:
+            throw new Error("Error! points_possible cannot be zero.");
+        default:
+            return true;//not sure if we need this
     }
-
 }
 
 //what other checks could we do to prevent the code from breaking?
